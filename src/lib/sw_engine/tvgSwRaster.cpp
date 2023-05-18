@@ -82,6 +82,18 @@ static inline uint8_t _argbLuma(uint8_t* c)
 }
 
 
+static inline uint8_t _abgrInvLuma(uint8_t* c)
+{
+    return ~_abgrLuma(c);
+}
+
+
+static inline uint8_t _argbInvLuma(uint8_t* c)
+{
+    return ~_argbLuma(c);
+}
+
+
 static inline uint32_t _abgrJoin(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
     return (a << 24 | b << 16 | g << 8 | r);
@@ -240,6 +252,8 @@ static bool _rasterRect(SwSurface* surface, const SwBBox& region, uint8_t r, uin
             return _rasterMaskedRect(surface, region, r, g, b, a, _ialpha);
         } else if (surface->compositor->method == CompositeMethod::LumaMask) {
             return _rasterMaskedRect(surface, region, r, g, b, a, surface->blender.luma);
+        } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+            return _rasterMaskedRect(surface, region, r, g, b, a, surface->blender.iluma);
         }
     } else {
         if (a == 255) {
@@ -348,6 +362,8 @@ static bool _rasterRle(SwSurface* surface, SwRleData* rle, uint8_t r, uint8_t g,
             return _rasterMaskedRle(surface, rle, r, g, b, a, _ialpha);
         } else if (surface->compositor->method == CompositeMethod::LumaMask) {
             return _rasterMaskedRle(surface, rle, r, g, b, a, surface->blender.luma);
+        } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+            return _rasterMaskedRle(surface, rle, r, g, b, a, surface->blender.iluma);
         }
     } else {
         if (a == 255) {
@@ -379,6 +395,8 @@ static bool _transformedRleRGBAImage(SwSurface* surface, const SwImage* image, c
             return _rasterTexmapPolygon(surface, image, transform, nullptr, opacity, _ialpha);
         } else if (surface->compositor->method == CompositeMethod::LumaMask) {
             return _rasterTexmapPolygon(surface, image, transform, nullptr, opacity, surface->blender.luma);
+        } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+            return _rasterTexmapPolygon(surface, image, transform, nullptr, opacity, surface->blender.iluma);
         }
     } else {
         return _rasterTexmapPolygon(surface, image, transform, nullptr, opacity, nullptr);
@@ -602,6 +620,8 @@ static bool _scaledRleRGBAImage(SwSurface* surface, const SwImage* image, const 
                 return _rasterScaledMaskedRleRGBAImage(surface, image, &itransform, region, halfScale, _ialpha);
             } else if (surface->compositor->method == CompositeMethod::LumaMask) {
                 return _rasterScaledMaskedRleRGBAImage(surface, image, &itransform, region, halfScale, surface->blender.luma);
+            } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+                return _rasterScaledMaskedRleRGBAImage(surface, image, &itransform, region, halfScale, surface->blender.iluma);
             }
         } else {
             if (surface->compositor->method == CompositeMethod::AlphaMask) {
@@ -610,6 +630,8 @@ static bool _scaledRleRGBAImage(SwSurface* surface, const SwImage* image, const 
                 return _rasterScaledMaskedTranslucentRleRGBAImage(surface, image, &itransform, region, opacity, halfScale, _ialpha);
             } else if (surface->compositor->method == CompositeMethod::LumaMask) {
                 return _rasterScaledMaskedTranslucentRleRGBAImage(surface, image, &itransform, region, opacity, halfScale, surface->blender.luma);
+            } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+                return _rasterScaledMaskedTranslucentRleRGBAImage(surface, image, &itransform, region, opacity, halfScale, surface->blender.iluma);
             }
         }
     } else {
@@ -730,6 +752,8 @@ static bool _directRleRGBAImage(SwSurface* surface, const SwImage* image, uint32
                 return _rasterDirectMaskedRleRGBAImage(surface, image, _ialpha);
             } else if (surface->compositor->method == CompositeMethod::LumaMask) {
                 return _rasterDirectMaskedRleRGBAImage(surface, image, surface->blender.luma);
+            } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+                return _rasterDirectMaskedRleRGBAImage(surface, image, surface->blender.iluma);
             }
         } else {
             if (surface->compositor->method == CompositeMethod::AlphaMask) {
@@ -738,6 +762,8 @@ static bool _directRleRGBAImage(SwSurface* surface, const SwImage* image, uint32
                 return _rasterDirectMaskedTranslucentRleRGBAImage(surface, image, opacity, _ialpha);
             } else if (surface->compositor->method == CompositeMethod::LumaMask) {
                 return _rasterDirectMaskedTranslucentRleRGBAImage(surface, image, opacity, surface->blender.luma);
+            } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+                return _rasterDirectMaskedTranslucentRleRGBAImage(surface, image, opacity, surface->blender.iluma);
             }
         }
     } else {
@@ -761,6 +787,8 @@ static bool _transformedRGBAImage(SwSurface* surface, const SwImage* image, cons
             return _rasterTexmapPolygon(surface, image, transform, &region, opacity, _ialpha);
         } else if (surface->compositor->method == CompositeMethod::LumaMask) {
             return _rasterTexmapPolygon(surface, image, transform, &region, opacity, surface->blender.luma);
+        } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+            return _rasterTexmapPolygon(surface, image, transform, &region, opacity, surface->blender.iluma);
         }
     } else {
         return _rasterTexmapPolygon(surface, image, transform, &region, opacity, nullptr);
@@ -777,6 +805,8 @@ static bool _transformedRGBAImageMesh(SwSurface* surface, const SwImage* image, 
             return _rasterTexmapPolygonMesh(surface, image, mesh, transform, region, opacity, _ialpha);
         } else if (surface->compositor->method == CompositeMethod::LumaMask) {
             return _rasterTexmapPolygonMesh(surface, image, mesh, transform, region, opacity, surface->blender.luma);
+        } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+            return _rasterTexmapPolygonMesh(surface, image, mesh, transform, region, opacity, surface->blender.iluma);
         }
     } else {
         return _rasterTexmapPolygonMesh(surface, image, mesh, transform, region, opacity, nullptr);
@@ -969,6 +999,8 @@ static bool _scaledRGBAImage(SwSurface* surface, const SwImage* image, const Mat
                 return _rasterScaledMaskedRGBAImage(surface, image, &itransform, region, halfScale, _ialpha);
             } else if (surface->compositor->method == CompositeMethod::LumaMask) {
                 return _rasterScaledMaskedRGBAImage(surface, image, &itransform, region, halfScale, surface->blender.luma);
+            } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+                return _rasterScaledMaskedRGBAImage(surface, image, &itransform, region, halfScale, surface->blender.iluma);
             }
         } else {
             if (surface->compositor->method == CompositeMethod::AlphaMask) {
@@ -977,6 +1009,8 @@ static bool _scaledRGBAImage(SwSurface* surface, const SwImage* image, const Mat
                 return _rasterScaledMaskedTranslucentRGBAImage(surface, image, &itransform, region, opacity, halfScale, _ialpha);
             } else if (surface->compositor->method == CompositeMethod::LumaMask) {
                 return _rasterScaledMaskedTranslucentRGBAImage(surface, image, &itransform, region, opacity, halfScale, surface->blender.luma);
+            } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+                return _rasterScaledMaskedTranslucentRGBAImage(surface, image, &itransform, region, opacity, halfScale, surface->blender.iluma);
             }
         }
     } else {
@@ -1095,6 +1129,8 @@ static bool _directRGBAImage(SwSurface* surface, const SwImage* image, const SwB
                 return _rasterDirectMaskedRGBAImage(surface, image, region, _ialpha);
             } else if (surface->compositor->method == CompositeMethod::LumaMask) {
                 return _rasterDirectMaskedRGBAImage(surface, image, region, surface->blender.luma);
+            } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+                return _rasterDirectMaskedRGBAImage(surface, image, region, surface->blender.iluma);
             }
         } else {
             if (surface->compositor->method == CompositeMethod::AlphaMask) {
@@ -1103,6 +1139,8 @@ static bool _directRGBAImage(SwSurface* surface, const SwImage* image, const SwB
                 return _rasterDirectMaskedTranslucentRGBAImage(surface, image, region, opacity, _ialpha);
             } else if (surface->compositor->method == CompositeMethod::LumaMask) {
                 return _rasterDirectMaskedTranslucentRGBAImage(surface, image, region, opacity, surface->blender.luma);
+            } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+                return _rasterDirectMaskedTranslucentRGBAImage(surface, image, region, opacity, surface->blender.iluma);
             }
         }
     } else {
@@ -1210,6 +1248,8 @@ static bool _rasterLinearGradientRect(SwSurface* surface, const SwBBox& region, 
             return _rasterLinearGradientMaskedRect(surface, region, fill, _ialpha);
         } else if (surface->compositor->method == CompositeMethod::LumaMask) {
             return _rasterLinearGradientMaskedRect(surface, region, fill, surface->blender.luma);
+        } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+            return _rasterLinearGradientMaskedRect(surface, region, fill, surface->blender.iluma);
         }
     } else {
         if (fill->translucent) return _rasterTranslucentLinearGradientRect(surface, region, fill);
@@ -1317,6 +1357,8 @@ static bool _rasterLinearGradientRle(SwSurface* surface, const SwRleData* rle, c
             return _rasterLinearGradientMaskedRle(surface, rle, fill, _ialpha);
         } else if (surface->compositor->method == CompositeMethod::LumaMask) {
             return _rasterLinearGradientMaskedRle(surface, rle, fill, surface->blender.luma);
+        } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+            return _rasterLinearGradientMaskedRle(surface, rle, fill, surface->blender.iluma);
         }
     } else {
         if (fill->translucent) return _rasterTranslucentLinearGradientRle(surface, rle, fill);
@@ -1407,6 +1449,8 @@ static bool _rasterRadialGradientRect(SwSurface* surface, const SwBBox& region, 
             return _rasterRadialGradientMaskedRect(surface, region, fill, _ialpha);
         } else if (surface->compositor->method == CompositeMethod::LumaMask) {
             return _rasterRadialGradientMaskedRect(surface, region, fill, surface->blender.luma);
+        } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+            return _rasterRadialGradientMaskedRect(surface, region, fill, surface->blender.iluma);
         }
     } else {
         if (fill->translucent) return _rasterTranslucentRadialGradientRect(surface, region, fill);
@@ -1513,6 +1557,8 @@ static bool _rasterRadialGradientRle(SwSurface* surface, const SwRleData* rle, c
             return _rasterRadialGradientMaskedRle(surface, rle, fill, _ialpha);
         } else if (surface->compositor->method == CompositeMethod::LumaMask) {
             return _rasterRadialGradientMaskedRle(surface, rle, fill, surface->blender.luma);
+        } else if (surface->compositor->method == CompositeMethod::InvLumaMask) {
+            return _rasterRadialGradientMaskedRle(surface, rle, fill, surface->blender.iluma);
         }
     } else {
         if (fill->translucent) _rasterTranslucentRadialGradientRle(surface, rle, fill);
@@ -1542,9 +1588,11 @@ bool rasterCompositor(SwSurface* surface)
     if (surface->cs == ColorSpace::ABGR8888 || surface->cs == ColorSpace::ABGR8888S) {
         surface->blender.join = _abgrJoin;
         surface->blender.luma = _abgrLuma;
+        surface->blender.iluma = _abgrInvLuma;
     } else if (surface->cs == ColorSpace::ARGB8888 || surface->cs == ColorSpace::ARGB8888S) {
         surface->blender.join = _argbJoin;
         surface->blender.luma = _argbLuma;
+        surface->blender.iluma = _argbInvLuma;
     } else {
         TVGERR("SW_ENGINE", "Unsupported Colorspace(%d) is expected!", surface->cs);
         return false;
