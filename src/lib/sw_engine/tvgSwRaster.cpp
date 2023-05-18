@@ -183,7 +183,7 @@ void _rasterGrayscale8(uint8_t *dst, uint32_t val, uint32_t offset, int32_t len)
 /* Rect                                                                 */
 /************************************************************************/
 
-static bool _rasterMaskedRect(SwSurface* surface, const SwBBox& region, uint8_t r, uint8_t g, uint8_t b, uint8_t a, uint8_t(*blender)(uint8_t*))
+static bool _rasterMaskedRect(SwSurface* surface, const SwBBox& region, uint8_t r, uint8_t g, uint8_t b, uint8_t a, Blender blender)
 {
     auto w = static_cast<uint32_t>(region.max.x - region.min.x);
     auto h = static_cast<uint32_t>(region.max.y - region.min.y);
@@ -269,7 +269,7 @@ static bool _rasterRect(SwSurface* surface, const SwBBox& region, uint8_t r, uin
 /* Rle                                                                  */
 /************************************************************************/
 
-static bool _rasterMaskedRle(SwSurface* surface, SwRleData* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a, uint8_t(*blender)(uint8_t*))
+static bool _rasterMaskedRle(SwSurface* surface, SwRleData* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a, Blender blender)
 {
     TVGLOG("SW_ENGINE", "Masked Rle");
 
@@ -387,7 +387,7 @@ static bool _transformedRleRGBAImage(SwSurface* surface, const SwImage* image, c
 /* RLE Scaled RGBA Image                                                */
 /************************************************************************/
 
-static bool _rasterScaledMaskedTranslucentRleRGBAImage(SwSurface* surface, const SwImage* image, const Matrix* itransform, const SwBBox& region, uint32_t opacity, uint32_t halfScale, uint8_t(*blender)(uint8_t*))
+static bool _rasterScaledMaskedTranslucentRleRGBAImage(SwSurface* surface, const SwImage* image, const Matrix* itransform, const SwBBox& region, uint32_t opacity, uint32_t halfScale, Blender blender)
 {
     TVGLOG("SW_ENGINE", "Scaled Masked Translucent Rle Image");
 
@@ -431,7 +431,7 @@ static bool _rasterScaledMaskedTranslucentRleRGBAImage(SwSurface* surface, const
 }
 
 
-static bool _rasterScaledMaskedRleRGBAImage(SwSurface* surface, const SwImage* image, const Matrix* itransform, const SwBBox& region, uint32_t halfScale, uint8_t(*blender)(uint8_t*))
+static bool _rasterScaledMaskedRleRGBAImage(SwSurface* surface, const SwImage* image, const Matrix* itransform, const SwBBox& region, uint32_t halfScale, Blender blender)
 {
     TVGLOG("SW_ENGINE", "Scaled Masked Rle Image");
 
@@ -607,7 +607,7 @@ static bool _scaledRleRGBAImage(SwSurface* surface, const SwImage* image, const 
 /* RLE Direct RGBA Image                                                */
 /************************************************************************/
 
-static bool _rasterDirectMaskedTranslucentRleRGBAImage(SwSurface* surface, const SwImage* image, uint32_t opacity, uint8_t(*blender)(uint8_t*))
+static bool _rasterDirectMaskedTranslucentRleRGBAImage(SwSurface* surface, const SwImage* image, uint32_t opacity, Blender blender)
 {
     TVGLOG("SW_ENGINE", "Direct Masked Rle Image");
 
@@ -636,7 +636,7 @@ static bool _rasterDirectMaskedTranslucentRleRGBAImage(SwSurface* surface, const
 }
 
 
-static bool _rasterDirectMaskedRleRGBAImage(SwSurface* surface, const SwImage* image, uint8_t(*blender)(uint8_t*))
+static bool _rasterDirectMaskedRleRGBAImage(SwSurface* surface, const SwImage* image, Blender blender)
 {
     TVGLOG("SW_ENGINE", "Direct Masked Rle Image");
 
@@ -748,7 +748,7 @@ static bool _transformedRGBAImageMesh(SwSurface* surface, const SwImage* image, 
 /*Scaled RGBA Image                                                     */
 /************************************************************************/
 
-static bool _rasterScaledMaskedTranslucentRGBAImage(SwSurface* surface, const SwImage* image, const Matrix* itransform, const SwBBox& region, uint32_t opacity, uint32_t halfScale, uint8_t(*blender)(uint8_t*))
+static bool _rasterScaledMaskedTranslucentRGBAImage(SwSurface* surface, const SwImage* image, const Matrix* itransform, const SwBBox& region, uint32_t opacity, uint32_t halfScale, Blender blender)
 {
     TVGLOG("SW_ENGINE", "Scaled Masked Image");
 
@@ -795,7 +795,7 @@ static bool _rasterScaledMaskedTranslucentRGBAImage(SwSurface* surface, const Sw
 }
 
 
-static bool _rasterScaledMaskedRGBAImage(SwSurface* surface, const SwImage* image, const Matrix* itransform, const SwBBox& region, uint32_t halfScale, uint8_t (*blender)(uint8_t*))
+static bool _rasterScaledMaskedRGBAImage(SwSurface* surface, const SwImage* image, const Matrix* itransform, const SwBBox& region, uint32_t halfScale, Blender blender)
 {
     TVGLOG("SW_ENGINE", "Scaled Masked Image");
 
@@ -936,7 +936,7 @@ static bool _scaledRGBAImage(SwSurface* surface, const SwImage* image, const Mat
 /* Direct RGBA Image                                                    */
 /************************************************************************/
 
-static bool _rasterDirectMaskedRGBAImage(SwSurface* surface, const SwImage* image, const SwBBox& region, uint8_t (*blender)(uint8_t*))
+static bool _rasterDirectMaskedRGBAImage(SwSurface* surface, const SwImage* image, const SwBBox& region, Blender blender)
 {
     TVGLOG("SW_ENGINE", "Direct Masked Image");
 
@@ -964,7 +964,7 @@ static bool _rasterDirectMaskedRGBAImage(SwSurface* surface, const SwImage* imag
 }
 
 
-static bool _rasterDirectMaskedTranslucentRGBAImage(SwSurface* surface, const SwImage* image, const SwBBox& region, uint32_t opacity, uint8_t (*blender)(uint8_t*))
+static bool _rasterDirectMaskedTranslucentRGBAImage(SwSurface* surface, const SwImage* image, const SwBBox& region, uint32_t opacity, Blender blender)
 {
     TVGLOG("SW_ENGINE", "Direct Masked Translucent Image");
 
@@ -1065,7 +1065,7 @@ static bool _rasterRGBAImage(SwSurface* surface, SwImage* image, const Matrix* t
 /* Rect Linear Gradient                                                 */
 /************************************************************************/
 
-static bool _rasterLinearGradientMaskedRect(SwSurface* surface, const SwBBox& region, const SwFill* fill, uint8_t (*blender)(uint8_t*))
+static bool _rasterLinearGradientMaskedRect(SwSurface* surface, const SwBBox& region, const SwFill* fill, Blender blender)
 {
     if (fill->linear.len < FLT_EPSILON) return false;
 
@@ -1149,7 +1149,7 @@ static bool _rasterLinearGradientRect(SwSurface* surface, const SwBBox& region, 
 /* Rle Linear Gradient                                                  */
 /************************************************************************/
 
-static bool _rasterLinearGradientMaskedRle(SwSurface* surface, const SwRleData* rle, const SwFill* fill, uint8_t (*blender)(uint8_t*))
+static bool _rasterLinearGradientMaskedRle(SwSurface* surface, const SwRleData* rle, const SwFill* fill, Blender blender)
 {
     if (fill->linear.len < FLT_EPSILON) return false;
 
@@ -1251,7 +1251,7 @@ static bool _rasterLinearGradientRle(SwSurface* surface, const SwRleData* rle, c
 /* Rect Radial Gradient                                                 */
 /************************************************************************/
 
-static bool _rasterRadialGradientMaskedRect(SwSurface* surface, const SwBBox& region, const SwFill* fill, uint8_t(*blender)(uint8_t*))
+static bool _rasterRadialGradientMaskedRect(SwSurface* surface, const SwBBox& region, const SwFill* fill, Blender blender)
 {
     if (fill->radial.a < FLT_EPSILON) return false;
 
@@ -1336,7 +1336,7 @@ static bool _rasterRadialGradientRect(SwSurface* surface, const SwBBox& region, 
 /* RLE Radial Gradient                                                  */
 /************************************************************************/
 
-static bool _rasterRadialGradientMaskedRle(SwSurface* surface, const SwRleData* rle, const SwFill* fill, uint8_t(*blender)(uint8_t*))
+static bool _rasterRadialGradientMaskedRle(SwSurface* surface, const SwRleData* rle, const SwFill* fill, Blender blender)
 {
     if (fill->radial.a < FLT_EPSILON) return false;
 

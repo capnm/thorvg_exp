@@ -238,10 +238,12 @@ struct SwImage
     bool         scaled = false;  //draw scaled image
 };
 
+typedef uint8_t(*Blender)(uint8_t*);
+
 struct SwBlender
 {
     uint32_t (*join)(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-    uint8_t (*method[(int)CompositeMethod::InvLumaMask + 1])(uint8_t*);
+    Blender method[(int)CompositeMethod::InvLumaMask + 1];
 };
 
 struct SwCompositor;
