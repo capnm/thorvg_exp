@@ -1,0 +1,56 @@
+name: Linux_bin
+
+# Note: set LD_LIBRARY_PATH to nonstandart dynanmic library location
+
+on:
+  push:
+    branches:
+      - ci-push-1
+jobs:
+  static_build:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Packages
+      run: |
+        sudo apt update
+        sudo apt install ninja-build gcc-multilib g++-multilib
+        sudo apt install python3-pip
+        sudo apt install libturbojpeg0-dev libpng-dev
+        sudo pip3 install meson
+
+    - name: Build
+      run: |
+        meson setup --prefix=${{github.workspace}}/thorvg --default-library static -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+        meson install -C ${{github.workspace}}/build
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: thorvg_lin_static
+        path: ${{github.workspace}}/thorvg
+
+
+  dynamic_build:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Packages
+      run: |
+        sudo apt update
+        sudo apt install ninja-build gcc-multilib g++-multilib
+        sudo apt install python3-pip
+        sudo apt install libturbojpeg0-dev libpng-dev
+        sudo pip3 install meson
+
+    - name: Build
+      run: |
+        meson setup --prefix=${{github.workspace}}/thorvg -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+        meson install -C ${{github.workspace}}/build
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: thorvg_lin_dynamic
+        path: ${{github.workspace}}/thorvg
+

@@ -1,0 +1,41 @@
+name: Windows_bin
+
+on:
+  push:
+    branches:
+      - ci-push-1
+
+jobs:
+  static_build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ilammy/msvc-dev-cmd@v1
+    - name: Install Packages
+      run: |
+        pip install meson ninja
+    - name: Build
+      run: |
+        meson setup --prefix=${{github.workspace}}/thorvg --default-library static  -Dlog=true -Dloaders="all" -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+        meson install -C ${{github.workspace}}/build
+    - uses: actions/upload-artifact@v3
+      with:
+        name: thorvg_win_static
+        path: ${{github.workspace}}/thorvg
+
+  dynamic_build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ilammy/msvc-dev-cmd@v1
+    - name: Install Packages
+      run: |
+        pip install meson ninja
+    - name: Build
+      run: |
+        meson setup --prefix=${{github.workspace}}/thorvg -Dlog=true -Dloaders="all" -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+        meson install -C ${{github.workspace}}/build
+    - uses: actions/upload-artifact@v3
+      with:
+        name: thorvg_win_dynamic
+        path: ${{github.workspace}}/thorvg

@@ -1,0 +1,85 @@
+name: Mac_bin
+
+on:
+  push:
+    branches:
+      - ci-push-1
+jobs:
+  dynamic_build:
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup meson
+      shell: bash
+      run: |
+        echo "I'm running on GitHub."
+        echo "===== python3 ====="
+        python3 -c "import sys; print(sys.version)"
+        echo
+        echo "===== meson ====="
+        pip3 install meson
+        meson -v
+        echo
+        echo "===== clang ====="
+        clang -v
+        echo
+        echo "===== clang 15 ====="
+        $(brew --prefix llvm@15)/bin/clang -v
+        echo
+        echo "===== ninja ====="
+        brew install ninja
+        ninja --version
+
+    - name: Build
+      shell: bash
+      run: |
+        CC=$(brew --prefix llvm@15)/bin/clang CXX=$(brew --prefix llvm@15)/bin/clang++ meson setup --prefix=${{github.workspace}}/thorvg -Dlog=true \
+          -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+        meson install -C ${{github.workspace}}/build
+        #ninja -v -C ${{github.workspace}}/build install
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: thorvg_mac_dynamic
+        path: ${{github.workspace}}/thorvg
+
+
+
+  static_build:
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup meson
+      shell: bash
+      run: |
+        echo "===== python3 ====="
+        python3 -c "import sys; print(sys.version)"
+        echo
+        echo "===== meson ====="
+        pip3 install meson
+        meson -v
+        echo
+        echo "===== clang ====="
+        clang -v
+        echo
+        echo "===== clang 15 ====="
+        $(brew --prefix llvm@15)/bin/clang -v
+        echo
+        echo "===== ninja ====="
+        brew install ninja
+        ninja --version
+
+    - name: Build
+      shell: bash
+      run: |
+        CC=$(brew --prefix llvm@15)/bin/clang CXX=$(brew --prefix llvm@15)/bin/clang++ meson setup --prefix=${{github.workspace}}/thorvg \
+            --default-library static -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+        meson install -C ${{github.workspace}}/build
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: thorvg_mac_static
+        path: ${{github.workspace}}/thorvg
+
