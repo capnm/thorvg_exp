@@ -19,10 +19,16 @@ jobs:
         sudo apt install python3-pip
         sudo apt install libturbojpeg0-dev libpng-dev
         sudo pip3 install meson
+        echo
+        echo "===== clang ====="
+        clang -v
+
 
     - name: Build
       run: |
         meson setup --prefix=${{github.workspace}}/thorvg --default-library static -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+        #meson compile -C ${{github.workspace}}/build
+        meson compile -C ${{github.workspace}}/build --verbose
         meson install -C ${{github.workspace}}/build
 
     - uses: actions/upload-artifact@v3
@@ -47,6 +53,8 @@ jobs:
     - name: Build
       run: |
         meson setup --prefix=${{github.workspace}}/thorvg -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+        #meson compile -C ${{github.workspace}}/build
+        meson compile -C ${{github.workspace}}/build --verbose
         meson install -C ${{github.workspace}}/build
 
     - uses: actions/upload-artifact@v3
