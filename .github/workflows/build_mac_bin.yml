@@ -28,7 +28,9 @@ jobs:
         $(brew --prefix llvm@15)/bin/clang -v
         echo
         echo "===== ninja ====="
+        #brew update
         brew install ninja
+        #brew upgrade
         ninja --version
 
     - name: Build

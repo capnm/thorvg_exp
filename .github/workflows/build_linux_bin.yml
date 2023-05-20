@@ -12,21 +12,33 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install Packages
+    - name: Setup meson
       run: |
+        echo
+        echo "===== apt update ====="
         sudo apt update
-        sudo apt install ninja-build gcc-multilib g++-multilib
+        echo
+        echo "===== ninja ====="
+        sudo apt install ninja-build
+        #gcc-multilib g++-multilib
+        echo
+        echo "===== pip3 ====="
         sudo apt install python3-pip
-        sudo apt install libturbojpeg0-dev libpng-dev
         sudo pip3 install meson
         echo
+        echo "===== libturbojpeg, libpng ====="
+        sudo apt install libturbojpeg0-dev libpng-dev
+        echo
         echo "===== clang ====="
+        # TODO
         clang -v
 
 
     - name: Build
       run: |
-        meson setup --prefix=${{github.workspace}}/thorvg --default-library static -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+        #meson setup --prefix=${{github.workspace}}/thorvg --default-library static -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+        CC=clang CXX=clang++ meson setup --prefix=${{github.workspace}}/thorvg --default-library static -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+
         #meson compile -C ${{github.workspace}}/build
         meson compile -C ${{github.workspace}}/build --verbose
         meson install -C ${{github.workspace}}/build
@@ -42,7 +54,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install Packages
+    - name: Setup meson
       run: |
         sudo apt update
         sudo apt install ninja-build gcc-multilib g++-multilib
