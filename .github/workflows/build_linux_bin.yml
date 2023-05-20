@@ -1,6 +1,7 @@
 name: Linux_bin
 
-# Note: set LD_LIBRARY_PATH to nonstandart dynanmic library location
+env:
+  cl_ver: 17
 
 on:
   push:
@@ -8,69 +9,161 @@ on:
       - ci-push-1
 jobs:
   static_build:
+    #if: ${{ false }}  # stop
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
 
     - name: Setup meson
       run: |
-        echo
-        echo "===== apt update ====="
-        sudo apt update
+        #echo
+        #echo "===== apt-get update ====="
+        #sudo apt-get update
         echo
         echo "===== ninja ====="
-        sudo apt install ninja-build
-        #gcc-multilib g++-multilib
+        sudo apt-get install ninja-build
         echo
-        echo "===== pip3 ====="
-        sudo apt install python3-pip
+        sudo apt-get install colorized-logs
+        echo
+        #echo "===== multilib ====="
+        #sudo apt-get install gcc-multilib g++-multilib
+        echo
+        echo "===== python3 ====="
+        python3 -c "import sys; print(sys.version)"
+        echo
+        echo "===== meson ====="
+        #sudo apt-get install python3-pip
         sudo pip3 install meson
-        echo
-        echo "===== libturbojpeg, libpng ====="
-        sudo apt install libturbojpeg0-dev libpng-dev
+        #echo
+        #echo "===== libturbojpeg, libpng ====="
+        #sudo apt-get install libturbojpeg0-dev libpng-dev
         echo
         echo "===== clang ====="
-        # TODO
         clang -v
+        echo
+        echo "===== clang-12 ====="
+        clang-12 -v
+        echo
+        echo "===== install clang-$cl_ver ====="
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh $cl_ver >/dev/null
+
+        echo
+        echo "===== clang-$cl_ver ====="
+        clang-$cl_ver -v
+        echo "Setup meson OK"
 
 
     - name: Build
       run: |
+        mkdir ${{github.workspace}}/thorvg
         #meson setup --prefix=${{github.workspace}}/thorvg --default-library static -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
-        CC=clang CXX=clang++ meson setup --prefix=${{github.workspace}}/thorvg --default-library static -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+        CC=clang-$cl_ver CXX=clang++-$cl_ver meson setup --prefix=${{github.workspace}}/thorvg \
+        --default-library static -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build . | tee ${{github.workspace}}/thorvg/log.txt
 
-        #meson compile -C ${{github.workspace}}/build
-        meson compile -C ${{github.workspace}}/build --verbose
-        meson install -C ${{github.workspace}}/build
+        meson compile -C ${{github.workspace}}/build | tee -a ${{github.workspace}}/thorvg/log.txt
+        #meson compile -C ${{github.workspace}}/build --verbose
+        meson install -C ${{github.workspace}}/build | tee -a ${{github.workspace}}/thorvg/log.txt
+
+        echo
+        echo "===== install OK ====="
+
+        chmod a+x ${{github.workspace}}/thorvg/bin/*
+        echo "tree"
+        tree -h ${{github.workspace}}/thorvg | tee -a ${{github.workspace}}/thorvg/log.txt
+        echo "ldd svg2png"
+        ldd ${{github.workspace}}/thorvg/bin/svg2png | tee -a ${{github.workspace}}/thorvg/log.txt
+        echo
+        echo "svg2png src/examples/images/eu.svg"
+        ${{github.workspace}}/thorvg/bin/svg2png src/examples/images/eu.svg | ansi2txt | tee -a ${{github.workspace}}/thorvg/log.txt
+
+        echo
+        echo "===== Build OK ====="
+
+    - name: Tar files
+      run: |
+        mkdir ${{github.workspace}}/tar
+        cd ${{github.workspace}}/thorvg/ && tar -cvf ${{github.workspace}}/tar/thorvg_lin_static.tar *
 
     - uses: actions/upload-artifact@v3
       with:
         name: thorvg_lin_static
-        path: ${{github.workspace}}/thorvg
+        path: ${{github.workspace}}/tar
+
+    - name: Test
+      run: if fgrep -iq warning ${{github.workspace}}/thorvg/log.txt; then echo "[E] CI warning(s), see log.txt."; exit 1; fi
 
 
   dynamic_build:
+    if: ${{ false }}  # stop
+
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
 
     - name: Setup meson
       run: |
-        sudo apt update
-        sudo apt install ninja-build gcc-multilib g++-multilib
-        sudo apt install python3-pip
-        sudo apt install libturbojpeg0-dev libpng-dev
+        #echo
+        #echo "===== apt-get update ====="
+        #sudo apt-get update
+        echo
+        echo "===== ninja ====="
+        sudo apt-get install ninja-build
+        echo
+        #echo "===== multilib ====="
+        #sudo apt-get install gcc-multilib g++-multilib
+        echo
+        echo "===== python3 ====="
+        python3 -c "import sys; print(sys.version)"
+        echo
+        echo "===== meson ====="
+        #sudo apt-get install python3-pip
         sudo pip3 install meson
+        echo
+        echo "===== libturbojpeg, libpng ====="
+        sudo apt-get install libturbojpeg0-dev libpng-dev
+        echo
+        echo "===== clang ====="
+        clang -v
+        echo
+        echo "===== clang-12 ====="
+        clang-12 -v
+        echo
+        echo "===== install clang 16 ====="
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh 16 >/dev/null
+        echo
+        echo "===== clang-16 ====="
+        clang-16 -v
+        echo "Setup meson OK"
+
+# Note: set LD_LIBRARY_PATH to nonstandart dynanmic library location
 
     - name: Build
       run: |
-        meson setup --prefix=${{github.workspace}}/thorvg -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+        CC=clang-16 CXX=clang++-16 meson setup --prefix=${{github.workspace}}/thorvg -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
         #meson compile -C ${{github.workspace}}/build
         meson compile -C ${{github.workspace}}/build --verbose
         meson install -C ${{github.workspace}}/build
+        cp -v ${{github.workspace}}/build/src/libthorvg.*/*.symbols ${{github.workspace}}/thorvg/lib/x86_64-linux-gnu/
+        echo
+        #chmod a+x ${{github.workspace}}/thorvg/bin/*
+        echo "tree"
+        tree -h ${{github.workspace}}/thorvg
+        echo "ldd svg2png"
+
+        LD_LIBRARY_PATH="${{github.workspace}}/thorvg/lib/x86_64-linux-gnu" \
+        ldd ${{github.workspace}}/thorvg/bin/svg2png
+
+    - name: Tar files
+      run: |
+        mkdir ${{github.workspace}}/tar
+        cd ${{github.workspace}}/thorvg/ && tar -cvf ${{github.workspace}}/tar/thorvg_lin_dynamic.tar *
 
     - uses: actions/upload-artifact@v3
       with:
         name: thorvg_lin_dynamic
-        path: ${{github.workspace}}/thorvg
+        path: ${{github.workspace}}/tar
 

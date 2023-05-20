@@ -3,10 +3,11 @@ name: Windows_bin
 on:
   push:
     branches:
-      - ci-push-1
+      - ci-push-1x
 
 jobs:
   static_build:
+    #if: ${{ false }}  # stop
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
@@ -30,6 +31,7 @@ jobs:
         path: ${{github.workspace}}/thorvg
 
   dynamic_build:
+    #if: ${{ false }}  # stop
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3

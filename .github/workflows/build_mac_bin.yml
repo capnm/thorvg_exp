@@ -3,9 +3,10 @@ name: Mac_bin
 on:
   push:
     branches:
-      - ci-push-1
+      - ci-push-1x
 jobs:
   dynamic_build:
+    #if: ${{ false }}  # stop
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v3
@@ -32,6 +33,9 @@ jobs:
         brew install ninja
         #brew upgrade
         ninja --version
+        echo
+        echo "install tree"
+        brew install tree
 
     - name: Build
       shell: bash
@@ -43,14 +47,23 @@ jobs:
         meson compile -C ${{github.workspace}}/build --verbose
         meson install -C ${{github.workspace}}/build
 
+        echo "tree"
+        tree -h ${{github.workspace}}/thorvg/
+
+    - name: Tar files
+      run: |
+        mkdir ${{github.workspace}}/tar
+        cd ${{github.workspace}}/thorvg/ && tar -cvf ${{github.workspace}}/tar/thorvg_mac_dynamic.tar *
+
     - uses: actions/upload-artifact@v3
       with:
         name: thorvg_mac_dynamic
-        path: ${{github.workspace}}/thorvg
+        path: ${{github.workspace}}/tar
 
 
 
   static_build:
+    #if: ${{ false }}  # stop
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v3
@@ -74,6 +87,9 @@ jobs:
         echo "===== ninja ====="
         brew install ninja
         ninja --version
+        echo
+        echo "install tree"
+        brew install tree
 
     - name: Build
       shell: bash
@@ -81,12 +97,20 @@ jobs:
         CC=$(brew --prefix llvm@15)/bin/clang CXX=$(brew --prefix llvm@15)/bin/clang++ meson setup --prefix=${{github.workspace}}/thorvg \
             --default-library static -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
 
-        #meson compile -C ${{github.workspace}}/build
-        meson compile -C ${{github.workspace}}/build --verbose
+        meson compile -C ${{github.workspace}}/build
+        #meson compile -C ${{github.workspace}}/build --verbose
         meson install -C ${{github.workspace}}/build
+
+        echo "tree"
+        tree -h ${{github.workspace}}/thorvg/
+
+    - name: Tar files
+      run: |
+        mkdir ${{github.workspace}}/tar
+        cd ${{github.workspace}}/thorvg/ && tar -cvf ${{github.workspace}}/tar/thorvg_mac_static.tar *
 
     - uses: actions/upload-artifact@v3
       with:
         name: thorvg_mac_static
-        path: ${{github.workspace}}/thorvg
+        path: ${{github.workspace}}/tar
 
