@@ -3,7 +3,7 @@ name: Windows_bin
 on:
   push:
     branches:
-      - ci-push-1x
+      - ci-push-1
 
 jobs:
   static_build:

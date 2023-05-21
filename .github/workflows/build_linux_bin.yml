@@ -96,7 +96,7 @@ jobs:
 
 
   dynamic_build:
-    if: ${{ false }}  # stop
+    #if: ${{ false }}  # stop
 
     runs-on: ubuntu-20.04
     steps:
