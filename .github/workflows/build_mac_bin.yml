@@ -40,15 +40,16 @@ jobs:
     - name: Build
       shell: bash
       run: |
+        mkdir ${{github.workspace}}/thorvg/
         CC=$(brew --prefix llvm@15)/bin/clang CXX=$(brew --prefix llvm@15)/bin/clang++ meson setup --prefix=${{github.workspace}}/thorvg -Dlog=true \
-          -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+          -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build . | tee -a ${{github.workspace}}/thorvg/log.txt
 
-        #meson compile -C ${{github.workspace}}/build
-        meson compile -C ${{github.workspace}}/build --verbose
-        meson install -C ${{github.workspace}}/build
+        #meson compile -C ${{github.workspace}}/build | tee -a ${{github.workspace}}/thorvg/log.txt
+        meson compile -C ${{github.workspace}}/build --verbose  | tee -a ${{github.workspace}}/thorvg/log.txt
+        meson install -C ${{github.workspace}}/build  | tee -a ${{github.workspace}}/thorvg/log.txt
 
         echo "tree"
-        tree -h ${{github.workspace}}/thorvg/
+        tree -h ${{github.workspace}}/thorvg/ | tee -a ${{github.workspace}}/thorvg/log.txt
 
     - name: Tar files
       run: |
@@ -94,15 +95,17 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        CC=$(brew --prefix llvm@15)/bin/clang CXX=$(brew --prefix llvm@15)/bin/clang++ meson setup --prefix=${{github.workspace}}/thorvg \
-            --default-library static -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+        mkdir ${{github.workspace}}/thorvg/
 
-        meson compile -C ${{github.workspace}}/build
+        CC=$(brew --prefix llvm@15)/bin/clang CXX=$(brew --prefix llvm@15)/bin/clang++ meson setup --prefix=${{github.workspace}}/thorvg \
+            --default-library static -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .  | tee -a ${{github.workspace}}/thorvg/log.txt
+
+        meson compile -C ${{github.workspace}}/build  | tee -a ${{github.workspace}}/thorvg/log.txt
         #meson compile -C ${{github.workspace}}/build --verbose
-        meson install -C ${{github.workspace}}/build
+        meson install -C ${{github.workspace}}/build  | tee -a ${{github.workspace}}/thorvg/log.txt
 
         echo "tree"
-        tree -h ${{github.workspace}}/thorvg/
+        tree -h ${{github.workspace}}/thorvg/ | tee -a ${{github.workspace}}/thorvg/log.txt
 
     - name: Tar files
       run: |

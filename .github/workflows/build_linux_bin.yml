@@ -1,7 +1,8 @@
 name: Linux_bin
 
 env:
-  cl_ver: 17
+  clang_v: 17
+  clang_v_dyn: 16
 
 on:
   push:
@@ -20,10 +21,8 @@ jobs:
         #echo "===== apt-get update ====="
         #sudo apt-get update
         echo
-        echo "===== ninja ====="
-        sudo apt-get install ninja-build
-        echo
-        sudo apt-get install colorized-logs
+        echo "===== ninja, (anti-)colorized-logs ====="
+        sudo apt-get install ninja-build colorized-logs
         echo
         #echo "===== multilib ====="
         #sudo apt-get install gcc-multilib g++-multilib
@@ -44,14 +43,14 @@ jobs:
         echo "===== clang-12 ====="
         clang-12 -v
         echo
-        echo "===== install clang-$cl_ver ====="
+        echo "===== install clang-$clang_v ====="
         wget https://apt.llvm.org/llvm.sh
         chmod +x llvm.sh
-        sudo ./llvm.sh $cl_ver >/dev/null
+        sudo ./llvm.sh $clang_v >/dev/null
 
         echo
-        echo "===== clang-$cl_ver ====="
-        clang-$cl_ver -v
+        echo "===== clang-$clang_v ====="
+        clang-$clang_v -v
         echo "Setup meson OK"
 
 
@@ -59,7 +58,7 @@ jobs:
       run: |
         mkdir ${{github.workspace}}/thorvg
         #meson setup --prefix=${{github.workspace}}/thorvg --default-library static -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
-        CC=clang-$cl_ver CXX=clang++-$cl_ver meson setup --prefix=${{github.workspace}}/thorvg \
+        CC=clang-$clang_v CXX=clang++-$clang_v meson setup --prefix=${{github.workspace}}/thorvg \
         --default-library static -Dlog=true -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build . | tee ${{github.workspace}}/thorvg/log.txt
 
         meson compile -C ${{github.workspace}}/build | tee -a ${{github.workspace}}/thorvg/log.txt
@@ -108,8 +107,8 @@ jobs:
         #echo "===== apt-get update ====="
         #sudo apt-get update
         echo
-        echo "===== ninja ====="
-        sudo apt-get install ninja-build
+        echo "===== ninja, (anti-)colorized-logs ====="
+        sudo apt-get install ninja-build colorized-logs
         echo
         #echo "===== multilib ====="
         #sudo apt-get install gcc-multilib g++-multilib
@@ -130,32 +129,40 @@ jobs:
         echo "===== clang-12 ====="
         clang-12 -v
         echo
-        echo "===== install clang 16 ====="
+        echo "===== install clang $clang_v_dyn ====="
         wget https://apt.llvm.org/llvm.sh
         chmod +x llvm.sh
-        sudo ./llvm.sh 16 >/dev/null
+        sudo ./llvm.sh $clang_v_dyn >/dev/null
         echo
-        echo "===== clang-16 ====="
-        clang-16 -v
+        echo "===== clang-$clang_v_dyn ====="
+        clang-$clang_v_dyn -v
         echo "Setup meson OK"
 
 # Note: set LD_LIBRARY_PATH to nonstandart dynanmic library location
 
     - name: Build
       run: |
-        CC=clang-16 CXX=clang++-16 meson setup --prefix=${{github.workspace}}/thorvg -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build .
+        mkdir ${{github.workspace}}/thorvg
+
+        CC=clang-$clang_v_dyn CXX=clang++-$clang_v_dyn meson setup --prefix=${{github.workspace}}/thorvg \
+           -Dsavers="all" -Dbindings="capi" -Dtools="all" ${{github.workspace}}/build . | tee ${{github.workspace}}/thorvg/log.txt
         #meson compile -C ${{github.workspace}}/build
-        meson compile -C ${{github.workspace}}/build --verbose
-        meson install -C ${{github.workspace}}/build
+        meson compile -C ${{github.workspace}}/build --verbose | tee -a ${{github.workspace}}/thorvg/log.txt
+        meson install -C ${{github.workspace}}/build | tee -a ${{github.workspace}}/thorvg/log.txt
         cp -v ${{github.workspace}}/build/src/libthorvg.*/*.symbols ${{github.workspace}}/thorvg/lib/x86_64-linux-gnu/
         echo
         #chmod a+x ${{github.workspace}}/thorvg/bin/*
         echo "tree"
-        tree -h ${{github.workspace}}/thorvg
+        tree -h ${{github.workspace}}/thorvg | tee -a ${{github.workspace}}/thorvg/log.txt
         echo "ldd svg2png"
 
         LD_LIBRARY_PATH="${{github.workspace}}/thorvg/lib/x86_64-linux-gnu" \
-        ldd ${{github.workspace}}/thorvg/bin/svg2png
+        ldd ${{github.workspace}}/thorvg/bin/svg2png | tee -a ${{github.workspace}}/thorvg/log.txt
+
+        echo
+        echo "svg2png src/examples/images/eu.svg"
+        LD_LIBRARY_PATH="${{github.workspace}}/thorvg/lib/x86_64-linux-gnu" \
+        ${{github.workspace}}/thorvg/bin/svg2png src/examples/images/eu.svg | ansi2txt | tee -a ${{github.workspace}}/thorvg/log.txt
 
     - name: Tar files
       run: |
@@ -167,3 +174,5 @@ jobs:
         name: thorvg_lin_dynamic
         path: ${{github.workspace}}/tar
 
+    - name: Test
+      run: if fgrep -iq warning ${{github.workspace}}/thorvg/log.txt; then echo "[E] CI warning(s), see log.txt."; exit 1; fi
