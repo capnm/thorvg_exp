@@ -48,6 +48,13 @@ if get_option('threads') == true and host_machine.system() != 'windows' and host
     thorvg_lib_dep += [thread_dep]
 endif
 
+if get_option('windows') == true
+    subdir('windows')
+    if windows_dep.found()
+        thorvg_lib_dep += windows_dep
+    endif
+endif
+
 subdir('bindings')
 
 thorvg_lib = library(
