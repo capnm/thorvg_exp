@@ -6,7 +6,7 @@ on:
       - main
   push:
     branches:
-      - main
+      - "*"
 
 jobs:
   build:
@@ -23,11 +23,12 @@ jobs:
         sudo apt-get install libefl-all-dev
         sudo apt-get install python3-pip
         sudo apt-get install libturbojpeg0-dev libpng-dev libwebp-dev
+        sudo apt-get install libglew-dev libglfw3-dev  
         sudo pip3 install meson
 
     - name: Build
       run: |
-        meson setup build -Dlog=true -Dexamples=true -Dloaders="all" -Dsavers="all" -Dbindings="capi" -Dtools="all"
+        meson setup build -Dlog=true -Dexamples=true -Dloaders="all" -Dsavers="all" -Dbindings="capi" -Dtools="all" -Dwindows=true 
         sudo ninja -C build install
 
   static_loaders:
@@ -41,13 +42,25 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install ninja-build gcc-multilib g++-multilib
+        sudo apt-get install libglew-dev libglfw3-dev
         sudo apt-get install python3-pip
         sudo pip3 install meson
 
     - name: Build
       run: |
-        meson setup build -Dlog=true -Dloaders="all" -Dsavers="all" -Dbindings="capi" -Dtools="all" -Dstatic=true
+        meson setup --prefix=`pwd`/static --default-library static -Dlog=true -Dloaders="all" -Dsavers="all" -Dbindings="capi" -Dtools="all" -Dstatic=true -Dwindows=true build .
         sudo ninja -C build install
+
+    - name: Tar_files
+      run: |
+        mkdir ${{github.workspace}}/tar
+        ls -all
+        cd ${{github.workspace}}/static/ && tar -czvf ${{github.workspace}}/tar/thorvg_linux64_static.tgz *    
+  
+    - uses: actions/upload-artifact@v3
+      with:
+        name: horvg_linux64_static
+        path: ${{github.workspace}}/tar
 
   unit_test:
     runs-on: ubuntu-latest
@@ -64,6 +77,7 @@ jobs:
         sudo apt-get install software-properties-common
         sudo apt-get install python3-pip
         sudo apt-get install libturbojpeg0-dev libpng-dev libwebp-dev
+        sudo apt-get install libglew-dev libglfw3-dev
         sudo pip3 install meson
 
     - name: Build
